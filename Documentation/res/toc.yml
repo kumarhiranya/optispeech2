@@ -1,0 +1,24 @@
+- name: Getting Started
+  href: started.md
+- name: Profiles Panel
+  href: profiles.md
+- name: Data Source Selector Panel
+  href: datasources.md
+- name: Camera Panel
+  href: camera.md
+- name: Display Panel
+  href: display.md
+- name: Advanced Settings Panel
+  href: advanced.md
+- name: Sensors Panel
+  href: sensors.md
+- name: Targets Panel
+  href: targets.md
+- name: Sweeps Panel
+  href: sweeps.md
+- name: Accuracy Panel
+  href: accuracy.md
+- name: File Data Source
+  href: file.md
+- name: WaveFront Data Source
+  href: wavefront.md

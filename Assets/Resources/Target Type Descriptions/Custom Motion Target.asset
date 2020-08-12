@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90a1a7da8b0d1f74182880b5171b0fbc, type: 3}
+  m_Name: Custom Motion Target
+  m_EditorClassIdentifier: 
+  typeName: Custom Motion
+  targetPrefab: {fileID: 3261934818545160145, guid: 75ed089ab2d75174082bfa973f6b8cd4,
+    type: 3}
+  targetConfigPrefab: {fileID: 8654768897747866306, guid: 474cd216bd245934cab5ff0c6eb4e410,
+    type: 3}

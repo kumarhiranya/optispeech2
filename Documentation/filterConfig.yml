@@ -1,0 +1,10 @@
+apiRules:
+- include:
+    uidRegex: ^Optispeech
+    type: Namespace
+- exclude:
+    hasAttribute:
+        uid: Optispeech.Documentation.HideInDocumentation
+- exclude:
+    uidRegex: .*
+    type: Namespace

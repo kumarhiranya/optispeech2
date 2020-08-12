@@ -1,0 +1,6 @@
+- name: Researcher Manual
+  href: res/
+- name: Developer Manual
+  href: dev/
+- name: Scripting API
+  href: api/

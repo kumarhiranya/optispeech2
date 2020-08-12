@@ -1,0 +1,8 @@
+- name: Optispeech 2
+  href: ../index.md
+- name: Researcher Manual
+  href: ../res/toc.yml
+- name: Developer Manual
+  href: ../dev/toc.yml
+- name: Api Documentation
+  href: ../api/toc.yml

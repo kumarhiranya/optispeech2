@@ -1,0 +1,113 @@
+{
+	"metadata": [
+		{
+			"src": [
+				{
+					"src": "..",
+					"files": [ "**.csproj" ]
+				}
+			],
+			"globalNamespaceId": "Global",
+			"filter": "filterConfig.yml",
+			"dest": "api",
+			"disableDefaultFilter": true
+		}
+	],
+	"build": {
+		"globalMetadata": {
+			"_appTitle": "OptiSpeech 2 documentation",
+			"_appFooter": "OptiSpeech 2 documentation",
+			"_appLogoPath": "resources/logo.png",
+			"_appFaviconPath": "resources/logo_square.png",
+			"_enableSearch": true
+		},
+		"content": [
+			{
+				"files": [ "toc.yml", "index.md" ]
+			},
+			{
+				"src": "api",
+				"files": [ "*.yml" ],
+				"dest": "api"
+			},
+			{
+				"src": "res",
+				"files": [ "toc.yml", "*.md" ],
+				"dest": "res"
+			},
+			{
+				"src": "dev",
+				"files": [ "toc.yml", "*.md" ],
+				"dest": "dev"
+			}
+		],
+		"overwrite": [
+			{
+				"src": "..",
+				"files": [ "Assets/Scripts/**/*.md" ]
+			}
+		],
+		"resource": [
+			{
+				"files": [ "resources/**/*" ]
+			}
+		],
+		"sitemap": {
+			"baseUrl": "localhost:8080",
+			"changefreq": "weekly",
+			"fileOptions": {
+				"api/*": {
+					"changefreq": "daily"
+				}
+			}
+		},
+		"xref": [
+			"https://normanderwan.github.io/DocFxForUnity/Unity/2020.1/xrefmap.yml",
+			"https://docs.unity3d.com/Packages/com.unity.textmeshpro@3.0/xrefmap.yml"
+		],
+		"xrefService": [ "https://xref.docs.microsoft.com/query?uid={uid}" ],
+		"dest": "../docs",
+		"template": [
+			"default",
+			"template"
+		]
+	},
+	"pdf": {
+		"content": [
+			{
+				"files": [ "index.md" ]
+			},
+			{
+				"src": "api",
+				"files": [ "*.yml" ]
+			},
+			{
+				"src": "res",
+				"files": [ "*.md" ]
+			},
+			{
+				"src": "dev",
+				"files": [ "*.md" ]
+			},
+			{
+				"files": [ "pdf/toc.yml" ]
+			}
+		],
+		"resource": [
+			{
+				"files": [ "resources/**/*" ]
+			}
+		],
+		"overwrite": [
+			{
+				"src": "..",
+				"files": [ "Assets/Scripts/**/*.md" ]
+			}
+		],
+		"wkhtmltopdf": {
+			"additionalArguments": "--enable-local-file-access"
+		},
+		"dest": "../docs",
+		"excludeDefaultToc": true
+	}
+}
