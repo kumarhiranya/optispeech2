@@ -3,45 +3,38 @@ using TMPro;
 using Optispeech.Targets.Controllers;
 using Optispeech.Documentation;
 
-namespace Optispeech.Targets.Configs
-{
+namespace Optispeech.Targets.Configs{
 
     /// <summary>
     /// Configuration interface for <see cref="CurvedTargetController"/>s
     /// </summary>
-    public class CurvedTargetConfig : TargetConfig
-    {
+    public class CurvedTargetConfig : TargetConfig    {
 
         /// <summary>
         /// Field for <see cref="CurvedTargetController.startPosition"/>'s x component
         /// </summary>
         [SerializeField]
         private TMP_InputField startXPosField = default;
-
         /// <summary>
         /// Field for <see cref="CurvedTargetController.startPosition"/>'s y component
         /// </summary>
         [SerializeField]
         private TMP_InputField startYPosField = default;
-
         /// <summary>
         /// Field for <see cref="CurvedTargetController.startPosition"/>'s z component
         /// </summary>
         [SerializeField]
         private TMP_InputField startZPosField = default;
-
         /// <summary>
         /// Field for <see cref="CurvedTargetController.vAmp"/>, vertical amplitude
         /// </summary>
         [SerializeField]
         private TMP_InputField vAmpField = default;
-
         /// <summary>
         /// Field for <see cref="CurvedTargetController.hAmp"/>, horizontal amplitude
         /// </summary>
         [SerializeField]
         private TMP_InputField hAmpField = default;
-
         /// <summary>
         /// Field for <see cref="CurvedTargetController.frequency"/>, frequency
         /// </summary>
@@ -50,8 +43,7 @@ namespace Optispeech.Targets.Configs
         
 
         [HideInDocumentation]
-        public override void Init(TargetsPanel panel, TargetController controller)
-        {
+        public override void Init(TargetsPanel panel, TargetController controller){
             base.Init(panel, controller);
 
             CurvedTargetController curvedTargetController = (CurvedTargetController)controller;
