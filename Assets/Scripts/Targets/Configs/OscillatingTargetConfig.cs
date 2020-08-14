@@ -15,37 +15,31 @@ namespace Optispeech.Targets.Configs {
         /// </summary>
         [SerializeField]
         private TMP_InputField startXPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.startPosition"/>'s y component
         /// </summary>
         [SerializeField]
         private TMP_InputField startYPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.startPosition"/>'s z component
         /// </summary>
         [SerializeField]
         private TMP_InputField startZPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.endPosition"/>'s x component
         /// </summary>
         [SerializeField]
         private TMP_InputField endXPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.endPosition"/>'s y component
         /// </summary>
         [SerializeField]
         private TMP_InputField endYPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.endPosition"/>'s z component
         /// </summary>
         [SerializeField]
         private TMP_InputField endZPosField = default;
-
         /// <summary>
         /// Field for <see cref="OscillatingTargetController.frequency"/>
         /// </summary>

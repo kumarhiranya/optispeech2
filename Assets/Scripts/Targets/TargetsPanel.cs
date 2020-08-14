@@ -94,6 +94,7 @@ namespace Optispeech.Targets {
             for (int i = 0; i < targets.Length; i++) {
                 addTargetDropdown.options.Add(new TMP_Dropdown.OptionData(targets[i].typeName));
             }
+            addTargetDropdown.options.Add(new TMP_Dropdown.OptionData("Add from clipboard"));
             addTargetDropdown.interactable = isInteractable;
         }
 
@@ -115,8 +116,23 @@ namespace Optispeech.Targets {
         /// </summary>
         /// <param name="index">The index in <see cref="targets"/> of the target type this new target should have</param>
         private void AddTarget(int index) {
-            // We subtract 1 from index to account for the placeholder item
-            TargetsManager.Instance.AddTarget(targets[index - 1]);
+            // If its the first item then we're pasting the target from clipboard
+            if (index == addTargetDropdown.options.Count - 1) {
+                string[] values = GUIUtility.systemCopyBuffer.Split('\t');
+                if (values.Length >= 2) {
+                    string id = values[0];
+                    string typeName = values[1];
+
+                    // Create target
+                    TargetDescription description = targets.Where(t => t.typeName == typeName).FirstOrDefault();
+                    id = TargetsManager.Instance.AddTarget(description);
+                    values[0] = id;
+                    TargetsManager.Instance.targets[id].ApplyConfigFromString(string.Join("\t", values));
+                }
+            } else {
+                // We subtract 1 from index to account for the placeholder item
+                TargetsManager.Instance.AddTarget(targets[index - 1]);
+            }
             // Set the placeholder item as our selected value again, so any type target
             // can be selected with it registering as a change
             addTargetDropdown.SetValueWithoutNotify(0);

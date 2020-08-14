@@ -15,6 +15,11 @@ namespace Optispeech.Targets {
         [SerializeField]
         private TextMeshProUGUI targetIDLabel = default;
         /// <summary>
+        /// Button that will copy this target's config string to clipboard
+        /// </summary>
+        [SerializeField]
+        private Button copyTargetButton = default;
+        /// <summary>
         /// Button to delete this target
         /// </summary>
         [SerializeField]
@@ -29,6 +34,21 @@ namespace Optispeech.Targets {
         /// </summary>
         [SerializeField]
         private TMP_InputField radiusField = default;
+        /// <summary>
+        /// Toggle button for whether to track the x axis
+        /// </summary>
+        [SerializeField]
+        private Toggle trackXToggle = default;
+        /// <summary>
+        /// Toggle button for whether to track the y axis
+        /// </summary>
+        [SerializeField]
+        private Toggle trackYToggle = default;
+        /// <summary>
+        /// Toggle button for whether to track the z axis
+        /// </summary>
+        [SerializeField]
+        private Toggle trackZToggle = default;
         // TODO add marker dropdown? (TT, TD, ...)
 
         /// <summary>
@@ -39,6 +59,10 @@ namespace Optispeech.Targets {
         /// <param name="controller">The target controller this config is for</param>
         public virtual void Init(TargetsPanel panel, TargetController controller) {
             targetIDLabel.text = controller.targetId;
+
+            copyTargetButton.onClick.AddListener(() => {
+                GUIUtility.systemCopyBuffer = controller.ToString();
+            });
 
             deleteTargetButton.onClick.AddListener(() => {
                 Destroy(TargetsManager.Instance.targets[controller.targetId].gameObject);
@@ -65,6 +89,24 @@ namespace Optispeech.Targets {
                 }
                 // Apply the radius to the target object
                 controller.transform.localScale = new Vector3(controller.radius, controller.radius, controller.radius);
+                panel.SaveTargetsToPrefs();
+            });
+
+            trackXToggle.isOn = controller.trackX;
+            trackXToggle.onValueChanged.AddListener(value => {
+                controller.trackX = value;
+                panel.SaveTargetsToPrefs();
+            });
+
+            trackYToggle.isOn = controller.trackY;
+            trackYToggle.onValueChanged.AddListener(value => {
+                controller.trackY = value;
+                panel.SaveTargetsToPrefs();
+            });
+
+            trackZToggle.isOn = controller.trackZ;
+            trackZToggle.onValueChanged.AddListener(value => {
+                controller.trackZ = value;
                 panel.SaveTargetsToPrefs();
             });
         }

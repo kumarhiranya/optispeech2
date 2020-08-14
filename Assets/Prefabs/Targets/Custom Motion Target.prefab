@@ -14,8 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   description: {fileID: 0}
   targetId: 
-  isVisible: 1
+  mesh: {fileID: 0}
+  configToggle: {fileID: 0}
+  visibility: 1
   radius: 0.1
+  trackX: 0
+  trackY: 1
+  trackZ: 1
   motionPath: 
   id: -1
   playbackSpeed: 1
@@ -23,6 +28,7 @@ MonoBehaviour:
   offset: {x: 0, y: 0, z: 0}
   config: {fileID: 0}
   status: 2
+  frames: []
   loading: 0
 --- !u!1001 &304090337857920343
 PrefabInstance:

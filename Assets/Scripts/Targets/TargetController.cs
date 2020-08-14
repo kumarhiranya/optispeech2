@@ -19,7 +19,7 @@ namespace Optispeech.Targets {
         /// This is stored in a constant so implementations can know to offset
         /// their own values by this amount
         /// </summary>
-        protected readonly static int NUM_BASE_CONFIG_VALUES = 4;
+        protected readonly static int NUM_BASE_CONFIG_VALUES = 7;
 
         /// <summary>
         /// The description of this target, which includes a type name and prefab with this controller on it,
@@ -50,7 +50,19 @@ namespace Optispeech.Targets {
         /// <summary>
         /// The radius of the target marker as well as how close the user needs to be to be considered "in" the target
         /// </summary>
-        public float radius;
+        public float radius = .1f;
+        /// <summary>
+        /// Whether or not this target should consider the x axis when calculating accuracy of this target
+        /// </summary>
+        public bool trackX = false;
+        /// <summary>
+        /// Whether or not this target should consider the y axis when calculating accuracy of this target
+        /// </summary>
+        public bool trackY = true;
+        /// <summary>
+        /// Whether or not this target should consider the z axis when calculating accuracy of this target
+        /// </summary>
+        public bool trackZ = true;
 
         /// <summary>
         /// The trail renderer used to show this target's history, when the config is open
@@ -92,6 +104,12 @@ namespace Optispeech.Targets {
                 float.TryParse(values[2], out visibility);
             if (values.Length > 3)
                 float.TryParse(values[3], out radius);
+            if (values.Length > 4)
+                trackX = values[4] == "True";
+            if (values.Length > 5)
+                trackY = values[5] == "True";
+            if (values.Length > 6)
+                trackZ = values[6] == "True";
         }
 
         [HideInDocumentation]
@@ -110,8 +128,17 @@ namespace Optispeech.Targets {
             transform.position = targetPosition;
             // Update our material based on distance to the marker
             if (tongueTipSensor.HasValue && mesh != null) {
+                // Create new vectors that only use the axes were tracking
+                Vector3 a = targetPosition;
+                if (!trackX) a.x = 0;
+                if (!trackY) a.y = 0;
+                if (!trackZ) a.z = 0;
+                Vector3 b = tongueTipSensor.Value.position + tongueTipSensor.Value.postOffset;
+                if (!trackX) b.x = 0;
+                if (!trackY) b.y = 0;
+                if (!trackZ) b.z = 0;
                 // We subtract our local scale (all 3 scale dimensions being equal) so distance is from the tongue tip to the outer edge of the target sphere
-                float distance = Vector3.Distance(targetPosition, tongueTipSensor.Value.position + tongueTipSensor.Value.postOffset) - transform.localScale.x;
+                float distance = Vector3.Distance(a, b) - transform.localScale.x;
                 mesh.material.color = Color.Lerp(TargetsManager.Instance.closeColor, TargetsManager.Instance.farColor, distance / transform.localScale.x);
                 // Apply visibility
                 mesh.material.color = new Color(mesh.material.color.r, mesh.material.color.g, mesh.material.color.b, visibility);
@@ -123,8 +150,8 @@ namespace Optispeech.Targets {
         /// </summary>
         /// <returns>Tab separated values string</returns>
         public override string ToString() {
-            // ID + type + visibility + radius + any implementation-specific values
-            return targetId + "\t" + description.typeName + "\t" + visibility + "\t" + radius;
+            // ID + type + visibility + radius + trackX + trackY + trackZ + any implementation-specific values
+            return targetId + "\t" + description.typeName + "\t" + visibility + "\t" + radius + "\t" + trackX + "\t" + trackY + "\t" + trackZ;
         }
 
         /// <summary>

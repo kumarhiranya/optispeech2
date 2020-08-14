@@ -54,6 +54,6 @@ MonoBehaviour:
   lastFrame:
     timestamp: 0
     sensorData: []
-  connectTimeout: 1000
+  connectTimeout: 10000
   host: 10.127.40.159
   port: 3030

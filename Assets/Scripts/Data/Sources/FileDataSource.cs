@@ -130,7 +130,7 @@ namespace Optispeech.Data.Sources {
         public override bool AreTargetsConfigurable() {
             // We don't want to save/restore targets from our profile,
             // but rather from the loaded files instead
-            return false;
+            return true;
         }
 
         [HideInDocumentation]

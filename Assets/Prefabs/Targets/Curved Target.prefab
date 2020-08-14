@@ -18,10 +18,13 @@ MonoBehaviour:
   configToggle: {fileID: 0}
   visibility: 1
   radius: 0.1
+  trackX: 1
+  trackY: 1
+  trackZ: 1
   startPosition: {x: 0, y: 0, z: 0}
-  hAmp: 0
-  vAmp: 0
-  frequency: 0
+  hAmp: 0.5
+  vAmp: 0.5
+  frequency: 1
   angle: 0
   angularSpeed: 0
   ellipseCenter: {x: 0, y: 0, z: 0}

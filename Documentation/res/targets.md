@@ -23,6 +23,12 @@ Clicking on a target will allow you to delete or configure that target. The fiel
 - The target visibility slider affects the transparency of the target, where all the way to the right is completely opague
 - The target radius affects the size of the target marker, and how accuracy is calculated (see the [accuracy panel](./accuracy.md) for details)
 
+Additionally, next to the name of the target is a button to copy the target, which can be used to add the target to another data source or profile through the "Add from clipboard" option in the add target dropdown.
+
+![Copy target button](../resources/copytargetbutton.png)
+
+![Add from clipboard option](../resources/addfromclipboard.png)
+
 Each type of target then has additional settings:
 
 **Custom Motion:**

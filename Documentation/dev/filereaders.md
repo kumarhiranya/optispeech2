@@ -22,6 +22,6 @@ Several file formats can have similar designs or patterns, so [FrameReader](../a
 
 If any part is confusing, it's recommended to read through any of the existing file readers to use as a reference.
 
-## Update [FrameReader.GetFileReader](../api/Optispeech.Data.FileReaders.FrameReader.yml#Optispeech_Data_FileReaders_FrameReader_GetFileReader_System_IO_StreamReader_)
+## Update [FrameReader.GetFileReader](../api/Optispeech.Data.FileReaders.FrameReader.yml#Optispeech_Data_FileReaders_FrameReader_GetFileReader_System_IO_StreamReader_System_Boolean_)
 
 Currently there is no standardized way to determine which file reader to use for a given file. The logic to determine which to use is written inside the aforementioned function. Whenever adding a new file reader that function will need to be updated to add logic for when to use the new file reader. This may (hopefully) change in the future to dynamically discovering file reader implementations and call a function on each to determine if that file reader can understand the given file.  

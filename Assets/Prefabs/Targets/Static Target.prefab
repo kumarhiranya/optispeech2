@@ -14,8 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   description: {fileID: 0}
   targetId: 
-  isVisible: 1
+  mesh: {fileID: 0}
+  configToggle: {fileID: 0}
+  visibility: 1
   radius: 0.1
+  trackX: 0
+  trackY: 1
+  trackZ: 1
   position: {x: 0, y: 0.5, z: -0.8}
 --- !u!1001 &304090337857920343
 PrefabInstance:
