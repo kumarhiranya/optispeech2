@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: Curved Target
   m_EditorClassIdentifier: 
   typeName: Curved Target
-  targetPrefab: {fileID: 0}
-  targetConfigPrefab: {fileID: 0}
+  targetPrefab: {fileID: 2909038597539679219, guid: 11e829d361bbe654c9ac4cfd50d11fbd,
+    type: 3}
+  targetConfigPrefab: {fileID: -6368269098854172169, guid: 037e778ca56d52a438ac8e13c4f54093,
+    type: 3}
