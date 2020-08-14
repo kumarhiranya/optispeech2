@@ -22,8 +22,8 @@ MonoBehaviour:
   trackY: 1
   trackZ: 1
   startPosition: {x: 0, y: 0, z: 0}
-  hAmp: 0.5
-  vAmp: 0.5
+  hAmp: 2
+  vAmp: 2
   frequency: 1
   angle: 0
   angularSpeed: 0
