@@ -100,6 +100,8 @@ namespace Optispeech.Targets.Configs{
                 }
                 panel.SaveTargetsToPrefs();
             });
+            Debug.Log(string.Format("Config: Input values: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startXPosField.text, startYPosField.text, startZPosField.text, 
+            vAmpField.text, hAmpField.text, frequencyField.text));
         }
 
         [HideInDocumentation]

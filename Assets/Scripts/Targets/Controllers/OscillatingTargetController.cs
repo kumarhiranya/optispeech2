@@ -24,6 +24,8 @@ namespace Optispeech.Targets.Controllers {
         [HideInDocumentation]
         public override Vector3 GetTargetPosition(long currTime) {
             // We multiply frequency by 4 so that frequency is one full cycle not just a quarter
+            // Debug.Log(string.Format("Calculating targetposition"));
+
             return Vector3.Lerp(startPosition, endPosition, (Mathf.Cos(frequency * 2 * Mathf.PI * currTime / 1000f) + 1) / 2f);
         }
 
@@ -45,6 +47,7 @@ namespace Optispeech.Targets.Controllers {
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 4], out endPosition.y);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 5], out endPosition.z);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 6], out frequency);
+            // Debug.Log(string.Format("Parsed values: Startposition:{0}, {1}, {2}, Endposition:{3}, {4}, {5}", startPosition.x, startPosition.y, startPosition.z, endPosition.x, endPosition.y, endPosition.z));
         }
 
         [HideInDocumentation]
