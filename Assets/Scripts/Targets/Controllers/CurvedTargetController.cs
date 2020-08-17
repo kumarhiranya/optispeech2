@@ -20,8 +20,8 @@ namespace Optispeech.Targets.Controllers {
         public Vector3 startPosition;
         public float hAmp, vAmp, frequency;
 
-        public float angle, angularSpeed;
-        public Vector3 ellipseCenter, ellipseRadius;
+        private float angle, angularSpeed;
+        private Vector3 ellipseCenter, ellipseRadius;
 
         public Vector3 getEllipseRadius(float hAmp, float vAmp)
         {
@@ -75,15 +75,17 @@ namespace Optispeech.Targets.Controllers {
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 3], out vAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 4], out hAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 5], out frequency);
-
+            Debug.Log(string.Format("Parsed values: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
             angularSpeed = getAngularSpeed(frequency);
             ellipseCenter = getEllipseCenter(startPosition, hAmp);
             ellipseRadius = getEllipseRadius(hAmp, vAmp);
+            Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
+            ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));            
         }
 
         [HideInDocumentation]
         public override string ToString() {
-            return base.ToString() + "\t" + startPosition.x + "\t" + startPosition.y + "\t" + vAmp + "\t" + hAmp + "\t" + frequency;
+            return base.ToString() + "\t" + startPosition.x + "\t" + startPosition.y + "\t" + startPosition.z + "\t" + vAmp + "\t" + hAmp + "\t" + frequency;
         }
     }
 }
