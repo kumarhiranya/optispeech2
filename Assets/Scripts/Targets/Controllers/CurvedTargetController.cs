@@ -19,10 +19,14 @@ namespace Optispeech.Targets.Controllers {
         /// </summary>
         public Vector3 startPosition;
         public float hAmp, vAmp, frequency;
+        public int pauseTime = 200; // pauseTime in ms
 
-        private float angle, angularSpeed;
-        private Vector3 ellipseCenter, ellipseRadius;
-
+        private float angle, angularSpeed, rawAngle, prevRawAngle = 0f; //angle and angleThresh in degrees, angular speed in radians/sec
+        private Vector3 ellipseCenter, ellipseRadius, currPosition, prevPosition;
+        private bool init = true;
+        private long selfTime, startTime = 0;
+        private int nPauses=0;
+        
         public Vector3 GetEllipseRadius(float hAmp, float vAmp)
         {
             return new Vector3(0f, vAmp, hAmp);
@@ -30,7 +34,13 @@ namespace Optispeech.Targets.Controllers {
 
         public float GetAngularSpeed(float frequency)
         {
-            return 180 * frequency;
+            // Returns angular speed in radians/sec
+            return Mathf.PI * frequency;
+        }
+
+        public float GetLowAngularSpeed(float pauseTime, float angleThresh){
+            //Returns angular speed in radians/sec
+            return (2*angleThresh*Mathf.PI)/(180*pauseTime);
         }
 
         public Vector3 GetEllipseCenter(Vector3 startPos, float hAmp)
@@ -39,10 +49,10 @@ namespace Optispeech.Targets.Controllers {
         }
 
         public float GetAngle(float angularSpeed, long currTime)
-        {
-            // input angular speed in degrees/sec, currTime in ms
-            // outputs angle in degrees
-            float angle = (angularSpeed * currTime / 1000) % 180;
+        {  
+            //Returns angle in degrees
+            float rawAngle = angularSpeed * currTime / 1000;
+            float angle = rawAngle % 180;
             if (angle < 90) { angle = 180 - angle; }
             return angle;
         }
@@ -62,15 +72,29 @@ namespace Optispeech.Targets.Controllers {
         [HideInDocumentation]
         public override Vector3 GetTargetPosition(long currTime)
         {
-            // Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
+            Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
+            selfTime = currTime - nPauses*pauseTime;
             angularSpeed = GetAngularSpeed(frequency);
+            rawAngle = angularSpeed * selfTime/1000;
+            if (rawAngle<prevRawAngle){
+                startTime = currTime;             
+            }
+            if(startTime>0 && currTime-startTime<pauseTime) return  prevPosition;
+            else if(startTime>0 && currTime-startTime>=pauseTime){
+                startTime = 0;
+                nPauses++;
+            }
+
             ellipseCenter = GetEllipseCenter(startPosition, hAmp);
             ellipseRadius = GetEllipseRadius(hAmp, vAmp);
-            // Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
-            // ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
-            angle = GetAngle(angularSpeed, currTime);
-            Debug.Log(string.Format("Calculated values: angle: {0}, angularSpeed:{1}", angle, angularSpeed));
-            return PointOnEllipse(ellipseCenter, ellipseRadius, angle);
+            Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
+            ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
+            angle = GetAngle(angularSpeed, selfTime);
+            currPosition = PointOnEllipse(ellipseCenter, ellipseRadius, angle);
+            prevRawAngle = rawAngle;
+            prevPosition = currPosition;
+            if(init) init = false;
+            return currPosition;
         }
 
         [HideInDocumentation]
