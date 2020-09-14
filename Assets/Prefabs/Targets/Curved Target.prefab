@@ -21,14 +21,10 @@ MonoBehaviour:
   trackX: 0
   trackY: 1
   trackZ: 1
-  startPosition: {x: 1, y: 2, z: 2}
-  hAmp: 1
-  vAmp: 2
+  startPosition: {x: -0.25, y: 0.4, z: -1.35}
+  hAmp: 0.5
+  vAmp: 0.5
   frequency: 1
-  angle: 0
-  angularSpeed: 0
-  ellipseCenter: {x: 0, y: 0, z: 0}
-  ellipseRadius: {x: 0, y: 0, z: 0}
 --- !u!1001 &5074544026014566499
 PrefabInstance:
   m_ObjectHideFlags: 0

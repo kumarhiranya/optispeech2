@@ -30,16 +30,18 @@ namespace Optispeech.Targets.Controllers {
 
         public float GetAngularSpeed(float frequency)
         {
-            return Mathf.PI * frequency;
+            return 180 * frequency;
         }
 
         public Vector3 GetEllipseCenter(Vector3 startPos, float hAmp)
         {
-            return startPos - new Vector3(0f, 0f, hAmp);
+            return startPos + new Vector3(0f, 0f, hAmp);
         }
 
         public float GetAngle(float angularSpeed, long currTime)
         {
+            // input angular speed in degrees/sec, currTime in ms
+            // outputs angle in degrees
             float angle = (angularSpeed * currTime / 1000) % 180;
             if (angle < 90) { angle = 180 - angle; }
             return angle;
@@ -47,8 +49,9 @@ namespace Optispeech.Targets.Controllers {
 
         public Vector3 PointOnEllipse(Vector3 center, Vector3 axes, float angle)
         {
-            //Rotation on z-y plane, angle being the arctan(y/z), i.e. angle between +z and +y in counter-clockwise direction
-            return new Vector3(center.x, center.y + axes.y * Mathf.Sin(angle), center.z + axes.z * Mathf.Cos(angle));
+            //Rotation on z-y plane, angle being the arctan(y/z), i.e. angle between +z and +y in counter-clockwise direction, angle in degrees
+            float tempAngle = angle*Mathf.PI/180;
+            return new Vector3(center.x, center.y + axes.y * Mathf.Sin(tempAngle), center.z + axes.z * Mathf.Cos(tempAngle));
         }
 
         [HideInDocumentation]
@@ -59,13 +62,14 @@ namespace Optispeech.Targets.Controllers {
         [HideInDocumentation]
         public override Vector3 GetTargetPosition(long currTime)
         {
-            Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
+            // Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
             angularSpeed = GetAngularSpeed(frequency);
             ellipseCenter = GetEllipseCenter(startPosition, hAmp);
             ellipseRadius = GetEllipseRadius(hAmp, vAmp);
-            Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
-            ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
+            // Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
+            // ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
             angle = GetAngle(angularSpeed, currTime);
+            Debug.Log(string.Format("Calculated values: angle: {0}, angularSpeed:{1}", angle, angularSpeed));
             return PointOnEllipse(ellipseCenter, ellipseRadius, angle);
         }
 
@@ -81,7 +85,7 @@ namespace Optispeech.Targets.Controllers {
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 3], out vAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 4], out hAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 5], out frequency);
-            Debug.Log(string.Format("Parsed values from ApplyConfigFromString: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
+            // Debug.Log(string.Format("Parsed values from ApplyConfigFromString: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
             
         }
 
