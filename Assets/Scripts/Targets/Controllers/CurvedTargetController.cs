@@ -74,7 +74,7 @@ namespace Optispeech.Targets.Controllers {
         {
             pauseTime=250;
             // Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
-            startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
+            // startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
             
             angularSpeed = GetAngularSpeed(frequency);
             singleOscTime = (int) (1000/frequency);
