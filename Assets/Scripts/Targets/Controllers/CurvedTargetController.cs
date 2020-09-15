@@ -19,7 +19,7 @@ namespace Optispeech.Targets.Controllers {
         /// </summary>
         public Vector3 startPosition;
         public float hAmp, vAmp, frequency;
-        public int pauseTime = 0; // pauseTime in ms
+        public int pauseTime; // pauseTime in ms
 
         private float angle, angularSpeed; //angle and angleThresh in degrees, angular speed in radians/sec
         private Vector3 ellipseCenter, ellipseRadius, currPosition, prevPosition;
@@ -72,9 +72,9 @@ namespace Optispeech.Targets.Controllers {
         [HideInDocumentation]
         public override Vector3 GetTargetPosition(long currTime)
         {
-            pauseTime=250;
-            // Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
-            // startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
+            // pauseTime=250;
+            Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
+            startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
             
             angularSpeed = GetAngularSpeed(frequency);
             singleOscTime = (int) (1000/frequency);
@@ -105,13 +105,15 @@ namespace Optispeech.Targets.Controllers {
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 3], out vAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 4], out hAmp);
             float.TryParse(values[NUM_BASE_CONFIG_VALUES + 5], out frequency);
+            int.TryParse(values[NUM_BASE_CONFIG_VALUES + 5], out pauseTime);
+            
             // Debug.Log(string.Format("Parsed values from ApplyConfigFromString: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency));
             
         }
 
         [HideInDocumentation]
         public override string ToString() {
-            return base.ToString() + "\t" + startPosition.x + "\t" + startPosition.y + "\t" + startPosition.z + "\t" + vAmp + "\t" + hAmp + "\t" + frequency;
+            return base.ToString() + "\t" + startPosition.x + "\t" + startPosition.y + "\t" + startPosition.z + "\t" + vAmp + "\t" + hAmp + "\t" + frequency + '\t' + pauseTime;
         }
     }
 }

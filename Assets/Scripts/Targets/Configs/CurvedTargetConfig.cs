@@ -40,7 +40,12 @@ namespace Optispeech.Targets.Configs{
         /// </summary>
         [SerializeField]
         private TMP_InputField frequencyField = default;
-        
+        /// <summary>
+        /// Field for <see cref="CurvedTargetController.pauseTime"/>, frequency
+        /// </summary>
+        [SerializeField]
+        private TMP_InputField pauseTimeField = default;
+
 
         [HideInDocumentation]
         public override void Init(TargetsPanel panel, TargetController controller){
@@ -100,8 +105,19 @@ namespace Optispeech.Targets.Configs{
                 }
                 panel.SaveTargetsToPrefs();
             });
-            Debug.Log(string.Format("Config: Input values: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}", startXPosField.text, startYPosField.text, startZPosField.text, 
-            vAmpField.text, hAmpField.text, frequencyField.text));
+
+            pauseTimeField.text = curvedTargetController.pauseTime.ToString();
+            pauseTimeField.onValueChanged.AddListener(value => {
+                if (!int.TryParse(value, out curvedTargetController.pauseTime))
+                {
+                    curvedTargetController.pauseTime = 0;
+                }
+                panel.SaveTargetsToPrefs();
+            });
+
+            Debug.Log(string.Format("Config: Input values: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", startXPosField.text, startYPosField.text, startZPosField.text, 
+            vAmpField.text, hAmpField.text, frequencyField.text, pauseTimeField.text));
+
         }
 
         [HideInDocumentation]
@@ -114,6 +130,7 @@ namespace Optispeech.Targets.Configs{
             vAmpField.interactable = interactable;
             hAmpField.interactable = interactable;
             frequencyField.interactable = interactable;
+            pauseTimeField.interactable = interactable;
         }
     }
 }

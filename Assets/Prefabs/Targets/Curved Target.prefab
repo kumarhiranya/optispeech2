@@ -25,6 +25,7 @@ MonoBehaviour:
   hAmp: 0.5
   vAmp: 0.5
   frequency: 1
+  pauseTime: 0
 --- !u!1001 &5074544026014566499
 PrefabInstance:
   m_ObjectHideFlags: 0
