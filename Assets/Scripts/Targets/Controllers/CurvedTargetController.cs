@@ -25,7 +25,7 @@ namespace Optispeech.Targets.Controllers {
         private Vector3 ellipseCenter, ellipseRadius, currPosition, prevPosition;
         private bool init = true;
         // private long selfTime, startTime = -1;
-        private int singleOscTime, timeSinceOsc;
+        private long timer = -1, dir = 0, prevDir = 0;
         
         public Vector3 GetEllipseRadius(float hAmp, float vAmp)
         {
@@ -48,12 +48,32 @@ namespace Optispeech.Targets.Controllers {
             return startPos + new Vector3(0f, 0f, hAmp);
         }
 
-        public float GetAngle(float angularSpeed, long currTime)
+        public float GetAngle(float angularSpeed, long currTime, int pauseTime)
         {  
             //Returns angle in degrees
-            float rawAngle = angularSpeed * 180 * currTime / (1000 * Mathf.PI);
+            long period = GetCycleDuration() / 2;
+            long nOscillations = currTime / (period + pauseTime);
+            long selfTime;
+
+            if(timer > 0){
+                selfTime = timer;
+                if(currTime - timer > pauseTime) timer = -1;
+            }
+            else selfTime = currTime - nOscillations*pauseTime;
+
+            float rawAngle = angularSpeed * 180 * selfTime / (1000 * Mathf.PI);
             float angle = rawAngle % 180;
-            if (angle < 90) { angle = 180 - angle; }
+            if (angle < 90) { 
+                angle = 180 - angle;
+                dir = -1;
+            }
+            else dir = -1;
+
+            if (dir*prevDir<0) {
+                timer = currTime;
+            }
+
+            prevDir = dir;
             return angle;
         }
 
@@ -70,28 +90,51 @@ namespace Optispeech.Targets.Controllers {
         }
 
         [HideInDocumentation]
+        // public override Vector3 GetTargetPosition(long currTime)
+        // {
+        //     // pauseTime=250;
+        //     Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
+        //     startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
+            
+        //     angularSpeed = GetAngularSpeed(frequency);
+        //     singleOscTime = (int) (1000/frequency);
+            
+        //     ellipseCenter = GetEllipseCenter(startPosition, hAmp);
+        //     ellipseRadius = GetEllipseRadius(hAmp, vAmp);
+        //     // Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
+        //     // ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
+            
+        //     angle = GetAngle(angularSpeed, currTime);
+        //     timeSinceOsc = (int) (currTime % (singleOscTime/2));
+        //     if(pauseTime>0 && timeSinceOsc>=0 && timeSinceOsc<pauseTime) currPosition = prevPosition;
+        //     else currPosition = PointOnEllipse(ellipseCenter, ellipseRadius, angle);
+        //     prevPosition = currPosition;
+        //     if(init) init = false;
+        //     return currPosition;
+        // }
         public override Vector3 GetTargetPosition(long currTime)
         {
             // pauseTime=250;
             Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
             startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
-            
             angularSpeed = GetAngularSpeed(frequency);
-            singleOscTime = (int) (1000/frequency);
+            
+            // singleOscTime = (int) (1000/(2*frequency));
+            // int nOscillations = (int) currTime / (singleOscTime+pauseTime);
+            // long selfTime = currTime - (nOscillations*pauseTime);
             
             ellipseCenter = GetEllipseCenter(startPosition, hAmp);
             ellipseRadius = GetEllipseRadius(hAmp, vAmp);
             // Debug.Log(string.Format("Calculated values: ellipseCenter:{0}, {1}, {2}, angularSpeed:{3}, ellipseRadius:{4}, {5}, {6}", ellipseCenter.x, ellipseCenter.y, ellipseCenter.z, angularSpeed,
             // ellipseRadius.x, ellipseRadius.y, ellipseRadius.z));       
             
-            angle = GetAngle(angularSpeed, currTime);
-            timeSinceOsc = (int) (currTime % (singleOscTime/2));
-            if(pauseTime>0 && timeSinceOsc>=0 && timeSinceOsc<pauseTime) currPosition = prevPosition;
-            else currPosition = PointOnEllipse(ellipseCenter, ellipseRadius, angle);
+            angle = GetAngle(angularSpeed, currTime, pauseTime);
+            currPosition = PointOnEllipse(ellipseCenter, ellipseRadius, angle);
             prevPosition = currPosition;
             if(init) init = false;
             return currPosition;
         }
+
 
         [HideInDocumentation]
         public override void ApplyConfigFromString(string config) {
