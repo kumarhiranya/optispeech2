@@ -24,8 +24,8 @@ MonoBehaviour:
   startPosition: {x: -0.25, y: 0.4, z: -1.35}
   hAmp: 0.5
   vAmp: 0.5
-  frequency: 1
-  pauseTime: 0
+  frequency: 0.1
+  pauseTime: 500
 --- !u!1001 &5074544026014566499
 PrefabInstance:
   m_ObjectHideFlags: 0

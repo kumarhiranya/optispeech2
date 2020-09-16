@@ -25,7 +25,7 @@ namespace Optispeech.Targets.Controllers {
         private Vector3 ellipseCenter, ellipseRadius, currPosition, prevPosition;
         private bool init = true;
         // private long selfTime, startTime = -1;
-        private long timer = -1, dir = 0, prevDir = 0;
+        private long selfTime, timer = -1, dir = 0, prevDir = 0, nRebounds = 0;
         
         public Vector3 GetEllipseRadius(float hAmp, float vAmp)
         {
@@ -51,15 +51,20 @@ namespace Optispeech.Targets.Controllers {
         public float GetAngle(float angularSpeed, long currTime, int pauseTime)
         {  
             //Returns angle in degrees
-            long period = GetCycleDuration() / 2;
-            long nOscillations = currTime / (period + pauseTime);
-            long selfTime;
-
+            // long reboundTime = GetCycleDuration() / 2;
+            // long nRebounds = currTime / (reboundTime + pauseTime);
+            long timeSincePause;
+            
             if(timer > 0){
-                selfTime = timer;
-                if(currTime - timer > pauseTime) timer = -1;
+                timeSincePause = currTime - nRebounds*pauseTime - timer;
+                if(timeSincePause > pauseTime) {
+                    timer = -1;
+                    nRebounds++;
+                    // selfTime = currTime - nRebounds*pauseTime;
+                }
+                else selfTime = timer;
             }
-            else selfTime = currTime - nOscillations*pauseTime;
+            else selfTime = currTime - nRebounds*pauseTime;
 
             float rawAngle = angularSpeed * 180 * selfTime / (1000 * Mathf.PI);
             float angle = rawAngle % 180;
@@ -67,12 +72,13 @@ namespace Optispeech.Targets.Controllers {
                 angle = 180 - angle;
                 dir = -1;
             }
-            else dir = -1;
+            else dir = 1;
 
             if (dir*prevDir<0) {
-                timer = currTime;
+                timer = currTime - nRebounds*pauseTime;
+                // Debug.Log(string.Format("Rebound number {0} detected. Timer set to {1}.", nRebounds+1, timer));
             }
-
+            // Debug.Log(string.Format("SelfTime: {0}, Angle: {1}", selfTime, angle));
             prevDir = dir;
             return angle;
         }
@@ -115,8 +121,8 @@ namespace Optispeech.Targets.Controllers {
         public override Vector3 GetTargetPosition(long currTime)
         {
             // pauseTime=250;
-            Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
-            startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
+            // Debug.Log(string.Format("Parsed values from GetTargetPosition: Startposition:{0}, {1}, {2}, vAmp:{3}, hAmp:{4}, freq:{5}, pauseTime:{6}", 
+            // startPosition.x, startPosition.y, startPosition.z, vAmp, hAmp, frequency, pauseTime));
             angularSpeed = GetAngularSpeed(frequency);
             
             // singleOscTime = (int) (1000/(2*frequency));
