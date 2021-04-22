@@ -138,14 +138,17 @@ namespace Optispeech.Data.FileReaders {
             // Read header row to determine what kind of input file it is
             string headerRow = file.ReadLine();
             // If the header row has a cell called "Target", then it is an export from the old version of optispeech
-            int firstTargetIndex = Array.IndexOf(headerRow.Split('\t'), "Target");
-
+            // int firstTargetIndex = Array.IndexOf(headerRow.Split('\t'), "Target Number");
+            bool containsTarget = headerRow.Contains("Target");
             FileReader reader;
-            if (firstTargetIndex > -1) {
+            if (containsTarget) {
+                Debug.Log("Detected Legacy file, using LegacyFileReader. " + containsTarget.ToString());
                 reader = new LegacyFileReader(headerRow, loadTargets);
             } else if (headerRow.StartsWith("OptiSpeech 2")) {
+                Debug.Log("Detected Optispeech 2 file, using OptiSpeechFileReader. " + containsTarget.ToString());
                 reader = new OptiSpeechFileReader(file, loadTargets);
             } else {
+                Debug.Log("Detected Wavefront file, using WaveFrontFileReader. " + containsTarget.ToString());
                 reader = new WaveFrontFileReader();
             }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Configuration>
+<Articulograph>Wave</Articulograph>
+<Channels/>
+<SpeakerDirection>
+<X>1.0</X>
+<Y>0.0</Y>
+<Z>0.0</Z>
+<Angle>0.0</Angle>
+<AutoDetect>1</AutoDetect>
+</SpeakerDirection>
+</Configuration>
