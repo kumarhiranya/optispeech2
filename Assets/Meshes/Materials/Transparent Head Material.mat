@@ -39,6 +39,6 @@ Material:
     - _StencilComp: 6
     - _StencilMask: 1
     m_Colors:
-    - _Color: {r: 0.29908794, g: 0.29406357, b: 0.3602941, a: 0}
+    - _Color: {r: 0.29908794, g: 0.29406357, b: 0.3602941, a: 0.514674}
     - _SpecColor: {r: 0.5, g: 0.5, b: 0.5, a: 0}
   m_BuildTextureStacks: []

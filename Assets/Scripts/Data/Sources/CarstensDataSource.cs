@@ -18,88 +18,93 @@ namespace Optispeech.Data.Sources {
     /// </summary>
     public class CarstensDataSource : DataSourceReader {
 
-        /// <summary>
-        /// The host to try to connect to
-        /// </summary>
-        private static string host = "127.0.0.1";
-        /// <summary>
-        /// The port to try to connect to. The spec says this should always be 3030, but is configurable just
-        /// in case of things like proxies or anything else that could cause a problem
-        /// </summary>
-        private static int port = 3030;
-        /// <summary>
-        /// The <see cref="CarstensDataSource"/> instance on the first <see cref="DataSourceDescription"/> with a <see cref="CarstensDataSource"/>
-        /// on it's <see cref="DataSourceDescription.readerPrefab"/>
-        /// </summary>
+        // The documentation for the Carstens EMA is not available online, and you'll have to get a copy
+        // from Dr. Katz or someone else with access to the documents. 
+        // The way the Carstens works is through a TCP connection to cs5recorder where each command you can give has a response,
+        // including one "200 Welcome" response provided at the beginning of the connection.
+        // Each response can be a text reply or a binary reply. The latter is just binary data of a fixed size struct
+        // depending on the command given, and text replies can have one or more status lines, the last one having a space
+        // between the status code and message, all before it having a dash instead. The documentation does not say
+        // which commands will have multi-line statuses, so we assume none do for now (obviously testing is required)
+        // Certain commands, and the documentation states which commands this applies to, will then contain a text payload
+        // that will end with a single line containing only a single period '.'.
+
+        // Values taken from documentation
+        static int SystemNumberOfChannels = 24;
+        static int SystemNumberOfTX = 9;
+
+        private delegate void TextReplyHandler(int status, string message);
+        private delegate void TextReplyPayloadHandler(int status, string message, string payload);
+        private delegate void DroppedResponseHandler();
+        private static string host = "10.127.40.116";
+        private static int port = 30303;
         private static CarstensDataSource mainDataSource;
 
-        /// <summary>
-        /// How long to wait to connect to WaveFront before giving up and assuming WaveFront just isn't available
-        /// </summary>
+        private enum ResponseType {
+            TEXT,
+            TEXT_WITH_PAYLOAD,
+            BINARY_DATA,
+            BINARY_STATS
+        }
+
+        private struct Command {
+            public string command;
+            public ResponseType responseType;
+            public TextReplyHandler textReplyHandler;
+            public TextReplyPayloadHandler textReplyPayloadHandler;
+            public DroppedResponseHandler droppedResponseHandler;
+        }
+
+        private readonly Command sprepare = new Command {
+            command = "sprepare",
+            responseType = ResponseType.TEXT_WITH_PAYLOAD,
+            // TODO no documentation on sprepare response, need to test possible responses
+            textReplyPayloadHandler = (int status, string message, string payload) => { },
+            droppedResponseHandler = () => { }
+        };
+
+        private readonly Command sstart = new Command {
+            command = "sstart\n",
+            responseType = ResponseType.TEXT_WITH_PAYLOAD,
+            // TODO no documentation on sstart response, need to test possible responses
+            textReplyPayloadHandler = (int status, string message, string payload) => { },
+            droppedResponseHandler = () => { }
+        };
+
+        private readonly Command sstop = new Command {
+            command = "sstop\n",
+            responseType = ResponseType.TEXT_WITH_PAYLOAD,
+            // TODO no documentation on sstop response, need to test possible responses
+            textReplyPayloadHandler = (int status, string message, string payload) => { },
+            droppedResponseHandler = () => { }
+        };
+
+        private readonly Command exit = new Command {
+            command = "exit\n",
+            responseType = ResponseType.TEXT,
+            // TODO no documentation on exit response, need to test possible responses
+            textReplyHandler = (int status, string message) => { },
+            droppedResponseHandler = () => { }
+        };
+
         [SerializeField]
         private int connectTimeout = 1000;
 
-        /// <summary>
-        /// A client controller used to communicate with the WaveFront realtime API.
-        /// This is static so that when this data source is instantiated, it shares the
-        /// same controller that originally made the connection from the prefab
-        /// </summary>
-        private static TcpClientController clientController = null;
+        private TcpClientController clientController = null;
+        private int numFailures;
 
-        /// <summary>
-        /// This data source gets frames from WaveFront in realtime, which may not be 1:1 with
-        /// rendered frames in OptiSpeech. To handle this, any read frames are put into this queue
-        /// and ReadFrame will pass the next one, or wait if the queue is empty.
-        /// </summary>
-        private Queue<DataFrame> dataFrameQueue = new Queue<DataFrame>();
+        private Queue<Command> commandsQueue = new Queue<Command>();
 
-        /// <summary>
-        /// Property that provides public access to <see cref="host"/> that saves to PlayerPrefs on write
-        /// </summary>
-        public static string Host {
-            get => host;
-            set {
-                host = value;
-                PlayerPrefs.SetString("wavefront-host", host);
-                mainDataSource.statusChangeEvent.Invoke(mainDataSource.GetCurrentStatus());
-            }
-        }
-
-        /// <summary>
-        /// Property that provides public access to <see cref="port"/> that saves to PlayerPrefs on write
-        /// </summary>
-        public static int Port {
-            get => port;
-            set {
-                port = value;
-                PlayerPrefs.SetInt("wavefront-port", port);
-                mainDataSource.statusChangeEvent.Invoke(mainDataSource.GetCurrentStatus());
-            }
-        }
-
-        /// <summary>
-        /// Loads host and port values from PlayerPrefs when the scene is loaded
-        /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void LoadAdvancedSettings() {
-            // When changing advanced settings this data source will need to be refreshed, so
-            // find the prefab for this data source
-            mainDataSource = Resources.LoadAll("Data Source Descriptions", typeof(DataSourceDescription)).Cast<DataSourceDescription>()
-                .Where(d => d.readerPrefab.TryGetComponent(out CarstensDataSource source))
-                .FirstOrDefault()
-                .readerPrefab.GetComponent<CarstensDataSource>();
-
-            host = PlayerPrefs.GetString("wavefront-host", host);
-            port = PlayerPrefs.GetInt("wavefront-port", port);
-        }
-
-        [HideInDocumentation]
+        // We override this function so we can tell the NDI Wave to start streaming data
         protected override void StartThread() {
+            // Handle welcome response, by ignoring it
+            HandleResponse((int status, string message) => { }, () => { });
+
+            commandsQueue.Enqueue(sprepare);
+
             base.StartThread();
-            SendCommand("StreamFrames AllFrames");
         }
 
-        [HideInDocumentation]
         public override DataSourceReaderStatus GetCurrentStatus() {
             // If this gets called multiple times, make sure to close the previous connection
             if (clientController != null) {
@@ -108,205 +113,210 @@ namespace Optispeech.Data.Sources {
 
             clientController = new TcpClientController();
 
-            // WaveFront is big endian, so if we're big endian then we need to flip each value before converting it
-            clientController.flipEndian = BitConverter.IsLittleEndian;
-
             // Make our client controller change our status on succeed and fail
             clientController.onFail.AddListener(() => statusChangeEvent.Invoke(DataSourceReaderStatus.UNAVAILABLE));
             clientController.onSuccess.AddListener(() => statusChangeEvent.Invoke(DataSourceReaderStatus.AVAILABLE));
+
             // Start our connection attempt
-            clientController.Connect(port, connectTimeout, host);
+            clientController.Connect(30303, connectTimeout);
 
             // Temporarily return unknown status while our connection attempt is processed
             return DataSourceReaderStatus.UNKNOWN;
         }
 
-        [HideInDocumentation]
-        public override SensorConfiguration[] GetDefaultSensorConfigurations() {
-            return new SensorConfiguration[] {
-                new SensorConfiguration { id = 0, type = SensorType.FOREHEAD, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 1, type = SensorType.LEFT_EAR, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 2, type = SensorType.RIGHT_EAR, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 3, type = SensorType.TONGUE_TIP, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 4, type = SensorType.TONGUE_DORSUM, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 5, type = SensorType.TONGUE_RIGHT, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 6, type = SensorType.TONGUE_LEFT, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 7, type = SensorType.TONGUE_BACK, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 8, type = SensorType.JAW, postOffset = Vector3.zero },
-                new SensorConfiguration { id = 9, type = SensorType.OTHER, postOffset = Vector3.zero }
-            };
+        protected override bool IsTimestampProvided() {
+            return false;
         }
 
-        [HideInDocumentation]
         protected override DataFrame ReadFrame() {
-            // We can receive multiple frames from NDI Wave at once,
-            // so we'll create our own buffer that'll get fed into
-            // the "main" buffer for this data source, plus any other
-            // handling our parent class performs
-            if (dataFrameQueue.Count == 0)
-                ReadPacket();
+            // Reset our number of failures
+            numFailures = 0;
 
-            return dataFrameQueue.Dequeue();
+            // We send all requests in the same thread to ensure responses don't become interlaced or associated with the wrong command
+            // After each sent command we wait until it gets a response or is considered dropped, before moving on to the next command
+            // Note this is the ReadFrame thread, not the main thread. This is so our sleep statements don't affect the interface
+            while (commandsQueue.Count > 0) {
+                Command command = commandsQueue.Dequeue();
+                switch (command.responseType) {
+                    case ResponseType.TEXT:
+                        SendCommand(command.command);
+                        HandleResponse(command.textReplyHandler, command.droppedResponseHandler);
+                        break;
+                    case ResponseType.TEXT_WITH_PAYLOAD:
+                        SendCommand(command.command);
+                        HandleResponse(command.textReplyPayloadHandler, command.droppedResponseHandler);
+                        break;
+                    default:
+                        continue;
+                }
+            }
+
+            // After the queue is empty we can send our data command and return its response
+            SendCommand("data");
+            return HandleDataResponse();
         }
 
-        [HideInDocumentation]
+        // Close our connection to cs5recorder
         protected override void Cleanup() {
-            // Close our connection to the NDI Wave
-            SendCommand("Bye");
+            commandsQueue.Enqueue(exit);
 
-            if (clientController != null) {
+            if (clientController != null)
                 clientController.Dispose();
-                clientController = null;
-            }   
         }
 
-        [HideInDocumentation]
         public override void StartSweep(string folderPath, string sweepName) {
-            // Note this is based off the documentation revision 7
-            // The current documentation on the WaveFront computer says revision 4,
-            // and doesn't contain info on how to start or stop recording. Unfortunately,
-            // the recording command is apparently unknown. Confusingly, the example realtime
-            // program provided next to the rev4 documentation *does* allow you to start or stop
-            // the recordings. (the "packet" parameter has no effect)
-            SendCommand("Recording Start,file=\"" + Path.Combine(folderPath, sweepName + "_wavefront.csv") + "\"");
+            commandsQueue.Enqueue(sstart);
         }
 
-        [HideInDocumentation]
         public override void StopSweep() {
-            SendCommand("Recording Stop");
+            commandsQueue.Enqueue(sstop);
         }
 
-        /// <summary>
-        /// This handles each packet received from the WaveFront realtime API
-        /// </summary>
-        private void ReadPacket() {
-            // Wait until next packet is ready
-            while (!clientController.stream.DataAvailable)
-                Thread.Sleep(1);
-
-            // Order is really important here! This is all following the API described in the NDI Wave manual here
-
-            // Read size of next packet from Wave NDI
-            Int32 size = clientController.ReadInt32();
-            // Read type of this packet
-            Int32 type = clientController.ReadInt32();
-
-            // If its not a data frame packet, ignore it and try the next packet
-            if (type != 3) {
-                // 8 because we've already read the first 8 bytes of this packet (2 32-bit ints)
-                // Note we need a bytearray to store the data in, but we don't actually use it for anything
-                byte[] bytes = new byte[size - 8];
-                clientController.stream.Read(bytes, 0, size - 8);
-                // If its a string, log it
-                if (type == 0)
-                    Debug.LogError(System.Text.Encoding.ASCII.GetString(bytes));
-                if (type == 1)
-                    Debug.Log(System.Text.Encoding.ASCII.GetString(bytes));
-                ReadPacket();
+        private void HandleResponse(TextReplyPayloadHandler onSuccess, DroppedResponseHandler onFail) {
+            if (!Readable(100)) {
+                onFail();
                 return;
             }
 
-            // Read number of components in this data frame
-            Int32 numComponents = clientController.ReadInt32();
+            // Since the text responses work on a line by line basis, we'll pipe our tcp client's stream to a StreamReader
+            // Not we create the reader for each response, since we'll also be handling binary responses, and text responses
+            // should be infrequent (mostly just starting and stopping sweeps)
+            using (StreamReader reader = new StreamReader(clientController.client.GetStream())) {
+                int statusCode;
+                string message;
 
-            for (int i = 0; i < numComponents; i++) {
-                // Read size of component
-                Int32 componentSize = clientController.ReadInt32();
-                // Read type of component
-                Int32 componentType = clientController.ReadInt32();
-
-                // It should only ever be 6D, per the docs
-                // If we get something different we'll just ignore it and move to the next component
-                if (componentType != 4) {
-                    // 8 because we've already read the first 8 bytes of this component (2 32-bit ints)
-                    // Note we need a bytearray to store the data in, but we don't actually use it for anything
-                    byte[] bytes = new byte[componentSize - 8];
-                    clientController.stream.Read(bytes, 0, componentSize - 8);
-                    continue;
-                }
-
-                // Read frame number
-                Int32 frameNumber = clientController.ReadInt32();
-                // Read frame timestamp
-                long timeStamp = clientController.ReadInt64() / 1000;
-
-                // Read number of sensors ("Tools" in the docs)
-                Int32 numSensors = clientController.ReadInt32();
-
-                // Create our data frame
-                DataFrame frame = new DataFrame {
-                    timestamp = timeStamp,
-                    sensorData = new SensorData[numSensors]
-                };
-
-                // Add each sensor's data to our data frame
-                for (int j = 0; j < numSensors; j++) {
-                    // Read rotation data. Note it returns Q_0 (Q_w) first
-                    // This quaternion should be normalized, so |Q| == 1
-                    float Qw = clientController.ReadSingle();
-                    float Qx = clientController.ReadSingle();
-                    float Qy = clientController.ReadSingle();
-                    float Qz = clientController.ReadSingle();
-
-                    // Read positional data
-                    float x = clientController.ReadSingle();
-                    float y = clientController.ReadSingle();
-                    float z = clientController.ReadSingle();
-
-                    // Read RMS marker fit to rigid body error
-                    // Note we don't actually include this in our data frame (our program doesn't track RMS error)
-                    float error = clientController.ReadSingle();
-
-                    // We can't seem to get any actual status codes via the RTAPI, but if any values are NaN we can
-                    // give it an error code ourselves
-                    if (float.IsNaN(Qw) || float.IsNaN(Qx) || float.IsNaN(Qy) || float.IsNaN(Qz) ||
-                        float.IsNaN(x) || float.IsNaN(y) || float.IsNaN(z)) {
-                        frame.sensorData[j] = new SensorData {
-                            id = j,
-                            status = SensorStatus.PROCESSING_ERROR,
-                            position = new Vector3(x, y, z),
-                            rotation = new Quaternion(Qx, Qy, Qz, Qw)
-                        };
-                    } else {
-                        frame.sensorData[j] = new SensorData {
-                            id = j,
-                            status = SensorStatus.OK,
-                            position = new Vector3(x, y, z),
-                            rotation = new Quaternion(Qx, Qy, Qz, Qw)
-                        };
+                // Read status line(s)
+                while (true) {
+                    string status = reader.ReadLine();
+                    if (status[4] == ' ') {
+                        // This is the last status
+                        statusCode = int.Parse(status.Substring(0, 3));
+                        message = status.Substring(4);
+                        break;
                     }
+                    // TODO handle multi-line statuses
                 }
 
-                // Add our data frame to our queue
-                dataFrameQueue.Enqueue(frame);
-            }
+                // Read text payload
+                string payload = "";
+                while (true) {
+                    string line = reader.ReadLine();
+                    if (line == ".") {
+                        // End of payload
+                        break;
+                    }
+                    if (payload != "") payload += "\n";
+                    payload += line;
+                }
 
-            // This function needs to add at least one item to our queue for ReadFrame to work,
-            // so if we ever receive 0 components that can be made into data frames,
-            // we'll just have to call this function again to process the next packet
-            if (dataFrameQueue.Count == 0)
-                ReadPacket();
+                // Pass everything to our response handler
+                onSuccess(statusCode, message, payload);
+            }
         }
 
-        /// <summary>
-        /// Sends a message to the WaveFront realtime API
-        /// </summary>
-        /// <param name="message">The message to send</param>
+        private void HandleResponse(TextReplyHandler onSuccess, DroppedResponseHandler onFail) {
+            if (!Readable(100)) {
+                onFail();
+                return;
+            }
+
+            // Since the text responses work on a line by line basis, we'll pipe our tcp client's stream to a StreamReader
+            // Not we create the reader for each response, since we'll also be handling binary responses, and text responses
+            // should be infrequent (mostly just starting and stopping sweeps)
+            using (StreamReader reader = new StreamReader(clientController.client.GetStream())) {
+                int statusCode;
+                string message;
+
+                // Read status line(s)
+                while (true) {
+                    string status = reader.ReadLine();
+                    if (status[4] == ' ') {
+                        // This is the last status
+                        statusCode = int.Parse(status.Substring(0, 3));
+                        message = status.Substring(4);
+                        break;
+                    }
+                    // TODO handle multi-line statuses
+                }
+
+                // Pass everything to our response handler
+                onSuccess(statusCode, message);
+            }
+        }
+
+        private DataFrame HandleDataResponse() {
+            if (!Readable(100)) {
+                // Most commands we don't matter about failure count,
+                // but we don't want to be stuck in a loop requesting data frames,
+                // so after 3 consecutive failures we'll count this data source as disabled
+                numFailures++;
+                if (numFailures >= 3) {
+                    statusChangeEvent.Invoke(DataSourceReaderStatus.UNAVAILABLE);
+                    return default;
+                }
+                // Send another command, since we still need this data response
+                SendCommand("data");
+                return HandleDataResponse();
+            }
+
+            // Data structure taken from documentation
+            // "Demod"
+            // I believe this is number of sensors
+            uint cnt = clientController.ReadUInt32();
+            // I believe this is the sweep number
+            uint sweepNr = clientController.ReadUInt32();
+            // I don't know what these represent
+            float[] dataS = new float[SystemNumberOfChannels * SystemNumberOfTX];
+            float[] dataC = new float[SystemNumberOfChannels * SystemNumberOfTX];
+            for (int i = 0; i < SystemNumberOfChannels * SystemNumberOfTX; i++)
+                dataS[i] = clientController.ReadSingle();
+            for (int i = 0; i < SystemNumberOfChannels * SystemNumberOfTX; i++)
+                dataC[i] = clientController.ReadSingle();
+            // Taxonomic Distance, used for head correction
+            float TaxDist = clientController.ReadSingle();
+            // Bit pattern where each bit represents a sensor's amp status (whether its amplitude != 0)
+            uint ampOK = clientController.ReadUInt32();
+            // Bit pattern where each bit represents a sensor's pos status (whether its position can be calculated)
+            uint posOK = clientController.ReadUInt32();
+            // Bit pattern where each bit represents whether a sensor is used as a reference for head correction
+            uint SensIsRef = clientController.ReadUInt32();
+            // Reserved for future use?
+            uint[] other = new uint[6];
+            for (int i = 0; i < 6; i++)
+                other[i] = clientController.ReadUInt32();
+
+            // "pos"
+            float[] pos = new float[SystemNumberOfChannels * 7];
+            for (int i = 0; i < SystemNumberOfChannels * 7; i++)
+                pos[i] = clientController.ReadSingle();
+
+            // "head"
+            float[] head = new float[SystemNumberOfChannels * 7];
+            for (int i = 0; i < SystemNumberOfChannels * 7; i++)
+                head[i] = clientController.ReadSingle();
+
+            // TODO figure out how to construct dataframe from read information
+            return default;
+        }
+
+        private bool Readable(int timeout) {
+            // Wait until response is ready, or 100 ms passes (at which point we'll consider the request dropped)
+            int milliseconds = 0;
+            while (!clientController.stream.DataAvailable) {
+                Thread.Sleep(1);
+                milliseconds++;
+                if (milliseconds >= timeout) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private void SendCommand(string message) {
             // Convert message into bytes
-            byte[] command = System.Text.Encoding.ASCII.GetBytes(message);
+            byte[] command = System.Text.Encoding.ASCII.GetBytes(message + "\n");
 
-            // The NDI Wave expects data in the form of packets with a size and type before the actual data
-            // For more information check out the manual
-            // Specifically towards the end is the real-time API
-
-            // Send size of packet
-            clientController.stream.Write(new byte[] { 0, 0, 0, (byte)(8 + command.Length) }, 0, 4);
-
-            // Send type of packet - command
-            clientController.stream.Write(new byte[] { 0, 0, 0, 1 }, 0, 4);
-
-            // Send our command
+            // Send our command, composed of a single line of text
             clientController.stream.Write(command, 0, command.Length);
         }
     }
