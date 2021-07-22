@@ -118,7 +118,9 @@ namespace Optispeech.Data.Sources {
             clientController.onSuccess.AddListener(() => statusChangeEvent.Invoke(DataSourceReaderStatus.AVAILABLE));
 
             // Start our connection attempt
-            clientController.Connect(30303, connectTimeout);
+            // clientController.Connect(30303, connectTimeout);
+            clientController.Connect(port, connectTimeout, host);
+            
 
             // Temporarily return unknown status while our connection attempt is processed
             return DataSourceReaderStatus.UNKNOWN;

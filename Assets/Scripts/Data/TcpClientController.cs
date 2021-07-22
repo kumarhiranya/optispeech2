@@ -76,6 +76,7 @@ namespace Optispeech.Data {
                     } else {
                         stream = client.GetStream();
                         onSuccess.Invoke();
+                        Debug.Log($"TCP connection with {host}:{port} succeeded!");
                     }
                 } else {
                     // Took too long to connect
