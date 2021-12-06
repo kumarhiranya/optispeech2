@@ -18,7 +18,7 @@ MonoBehaviour:
   lastFrame:
     timestamp: 0
     sensorData: []
-  connectTimeout: 1000
+  connectTimeout: 3000
 --- !u!1001 &2439796339790104860
 PrefabInstance:
   m_ObjectHideFlags: 0

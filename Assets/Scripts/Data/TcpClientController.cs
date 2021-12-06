@@ -76,7 +76,7 @@ namespace Optispeech.Data {
                     } else {
                         stream = client.GetStream();
                         onSuccess.Invoke();
-                        Debug.Log($"TCP connection with {host}:{port} succeeded!");
+                        Debug.Log($"TCP connection with {host}:{port} succeeded! OnSuccess() Invoked. stream DataAvailable: {stream.DataAvailable}");
                     }
                 } else {
                     // Took too long to connect
@@ -147,6 +147,21 @@ namespace Optispeech.Data {
             stream.Read(bytes, 0, 4);
             if (flipEndian) Array.Reverse(bytes);
             return BitConverter.ToSingle(bytes, 0);
+        }
+
+        public string ReadString() {
+            // Receive the TcpServer.response.
+
+            // Buffer to store the response bytes.
+            Byte[] data = new Byte[256];
+
+            // String to store the response ASCII representation.
+            String responseData = String.Empty;
+
+            // Read the first batch of the TcpServer response bytes.
+            Int32 bytes = stream.Read(data, 0, data.Length);
+            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+            return responseData;
         }
     }
 }

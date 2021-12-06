@@ -106,6 +106,7 @@ namespace Optispeech.Data.Sources {
                 clientController.Dispose();
             }
 
+            Debug.Log("Initializing TcpClientController (WaveFront)");
             clientController = new TcpClientController();
 
             // WaveFront is big endian, so if we're big endian then we need to flip each value before converting it
@@ -115,6 +116,7 @@ namespace Optispeech.Data.Sources {
             clientController.onFail.AddListener(() => statusChangeEvent.Invoke(DataSourceReaderStatus.UNAVAILABLE));
             clientController.onSuccess.AddListener(() => statusChangeEvent.Invoke(DataSourceReaderStatus.AVAILABLE));
             // Start our connection attempt
+            Debug.Log("Attempting connection to server (WaveFront)");
             clientController.Connect(port, connectTimeout, host);
 
             // Temporarily return unknown status while our connection attempt is processed
