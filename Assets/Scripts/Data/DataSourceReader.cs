@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Events;
+using Debug = UnityEngine.Debug;
 
 namespace Optispeech.Data {
 
@@ -191,7 +192,9 @@ namespace Optispeech.Data {
                 stopwatch.Start();
             }
             while (isActive) {
+                Debug.Log("DSR: isActive true, reading frame...");
                 DataFrame frame = ReadFrame();
+                Debug.Log("DSR: Finished reading frame, data processing...");
                 // Set timestamp
                 if (!IsTimestampProvided()) {
                     frame.timestamp = stopwatch.ElapsedMilliseconds;
@@ -208,7 +211,9 @@ namespace Optispeech.Data {
                 // Add data frame to our queue,
                 //  and mark it as our most up to date frame
                 dataQueue.Enqueue(lastFrame = frame);
+                Debug.Log("DSR: Finished data processing and adding data to queue.");
             }
+            Debug.Log("DSR: Cleaning up.");
             Cleanup();
         }
 

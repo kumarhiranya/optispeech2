@@ -55,7 +55,7 @@ namespace Optispeech.Data {
         /// <param name="host">The host to connect to, defaulting to the localhost</param>
         // Calling an async function from Unity's main thread will return after
         // hitting the first "await" call, but keep running in the background
-        public async void Connect(int port, int connectTimeout = 1000, string host = "127.0.0.1") {
+        public async void Connect(int port=30303, int connectTimeout = 1000, string host = "10.127.40.116") {
             // Yield once before starting to ensure whatever started our task can finish its thing without us calling
             // the callbacks first
             await Task.Yield();
@@ -76,6 +76,7 @@ namespace Optispeech.Data {
                     } else {
                         stream = client.GetStream();
                         onSuccess.Invoke();
+                        Debug.Log($"TCP connection with {host}:{port} succeeded! OnSuccess() Invoked. stream DataAvailable: {stream.DataAvailable}");
                     }
                 } else {
                     // Took too long to connect
@@ -116,6 +117,16 @@ namespace Optispeech.Data {
         }
 
         /// <summary>
+        /// Reads the next 32-bit unsigned int from the network stream
+        /// </summary>
+        /// <returns>The parsed value</returns>
+        public uint ReadUInt32() {
+            byte[] bytes = new byte[4];
+            stream.Read(bytes, 0, 4);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+
+        /// <summary>
         /// Reads the next 64-bit int from the network stream
         /// </summary>
         /// <returns>The parsed value</returns>
@@ -136,6 +147,21 @@ namespace Optispeech.Data {
             stream.Read(bytes, 0, 4);
             if (flipEndian) Array.Reverse(bytes);
             return BitConverter.ToSingle(bytes, 0);
+        }
+
+        public string ReadString() {
+            // Receive the TcpServer.response.
+
+            // Buffer to store the response bytes.
+            Byte[] data = new Byte[256];
+
+            // String to store the response ASCII representation.
+            String responseData = String.Empty;
+
+            // Read the first batch of the TcpServer response bytes.
+            Int32 bytes = stream.Read(data, 0, data.Length);
+            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+            return responseData;
         }
     }
 }

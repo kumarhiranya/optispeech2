@@ -141,7 +141,6 @@ namespace Optispeech.Targets.Controllers {
             return currPosition;
         }
 
-
         [HideInDocumentation]
         public override void ApplyConfigFromString(string config) {
             base.ApplyConfigFromString(config);
