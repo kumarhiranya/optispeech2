@@ -11,3 +11,4 @@ You'll also probably want to use Visual Studio for editing scripts.
 ## Documentation
 
 To generate documentation, you'll need to [install docFX](https://dotnet.github.io/docfx/tutorial/docfx_getting_started.html) and make sure its on your system's PATH environment variable ([Windows Guide](https://helpdeskgeek.com/windows-10/add-windows-path-environment-variable/)).
+# I will add some information below
